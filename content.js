@@ -113,8 +113,7 @@ function createButton(onToggle) {
 }
 
 // The credit bar (subreddit, time, Join, overflow menu) is Reddit's header row;
-// the button goes just before Join, or before the overflow menu when there's no
-// Join button, so it sits with the other actions.
+// the button goes right before the overflow menu, so it sits with the actions.
 // Hovering the subreddit name opens a hover card inside the credit bar with its
 // own Join button; the button must never move in there, or it leaves with it.
 const POPUP_SELECTOR = 'faceplate-hovercard, [role="dialog"], [role="tooltip"], [popover]';
@@ -127,19 +126,26 @@ function headerControl(creditBar, selector) {
   }) || null;
 }
 
-function placeButton(post, button) {
-  const creditBar = post.querySelector(':scope > [slot="credit-bar"]');
-  const join = headerControl(creditBar, 'shreddit-join-button');
-  // The Mute List extension stacks the ⋯ and its mute button in a column
-  // wrapper, which may sit outside the credit bar (subreddit feeds). The eye
-  // goes first inside it; content.css lays it out beside the ⋯.
-  const column = post.querySelector('.rmute-under');
-  const anchor = join || headerControl(creditBar, 'shreddit-post-overflow-menu');
+// The menu sits in wrappers that vary by page: a fixed-size loader on feeds, a
+// loader inside a div on ads, nothing on post pages, plus the Mute List
+// extension's column. Inside those the button would stack above the menu, so
+// climb to the item in the flex row that lays the header out.
+function menuRowItem(menu, creditBar) {
+  let item = menu;
+  while (item.parentElement !== creditBar && !getComputedStyle(item.parentElement).display.endsWith('flex') ||
+         item.parentElement.classList.contains('rmute-under')) {
+    item = item.parentElement;
+  }
+  return item;
+}
 
-  if (!join && column) {
-    if (column.firstElementChild !== button) column.prepend(button);
-  } else if (anchor) {
-    if (button.nextElementSibling !== anchor) anchor.insertAdjacentElement('beforebegin', button);
+function placeButton(post, button) {
+  // Not always a direct child: feed posts with a thumbnail nest it in a grid.
+  const creditBar = [...post.querySelectorAll('[slot="credit-bar"]')].find((el) => el.closest(POST_SELECTOR) === post);
+  const menu = headerControl(creditBar, 'shreddit-post-overflow-menu');
+
+  if (menu) {
+    if (!button.nextElementSibling?.contains(menu)) menuRowItem(menu, creditBar).insertAdjacentElement('beforebegin', button);
   } else if (creditBar) {
     if (button.parentElement !== creditBar) creditBar.appendChild(button);
   } else if (!button.isConnected) {

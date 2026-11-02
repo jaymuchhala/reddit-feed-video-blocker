@@ -61,21 +61,8 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
   z-index: 2;
 }
 
-/* The Mute List extension stacks the ⋯ over a mute button in .rmute-under.
-   The eye goes inside it but hangs off its left edge, level with the ⋯, so
-   the column keeps its width (widening it pushed the ⋯ off feed cards). */
-.rmute-under:has(> .rfvb-btn) {
-  position: relative;
-}
-
-.rmute-under > .rfvb-btn {
-  position: absolute;
-  top: 0;
-  right: 100%;
-}
-
-/* With Join present the eye sits before it; level it with the ⋯ above the
-   mute button instead of centering on the taller row. */
+/* The Mute List extension stacks a mute button under the ⋯, which can make the
+   row taller; stay level with the ⋯ instead of centering on the taller row. */
 [slot="credit-bar"]:has(.rmute-under) .rfvb-btn {
   align-self: flex-start;
 }
