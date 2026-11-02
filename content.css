@@ -1,0 +1,131 @@
+/* Media is hidden by CSS alone, so it never flashes on screen before content.js
+   runs. Revealing a post just sets data-rfvb-revealed on it.
+
+   New Reddit (shreddit): each post is a <shreddit-post> whose media lives in
+   light-DOM children slotted into its shadow root. .rfvb-media covers media that
+   content.js finds outside the known slots. */
+shreddit-post:not([data-rfvb-revealed]) > [slot="post-media-container"],
+shreddit-post:not([data-rfvb-revealed]) > [slot="thumbnail"],
+shreddit-ad-post:not([data-rfvb-revealed]) > [slot="post-media-container"],
+shreddit-ad-post:not([data-rfvb-revealed]) > [slot="thumbnail"],
+shreddit-post:not([data-rfvb-revealed]) .rfvb-media,
+shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
+  display: none !important;
+}
+
+/* Comments: the body is a [slot="comment"] nested deep inside <shreddit-comment>,
+   and replies sit outside it. Revealing sets the flag on the body itself, so a
+   comment and its replies toggle independently. */
+[slot="comment"]:not([data-rfvb-revealed]) :is(figure, video, shreddit-player, shreddit-player-2, shreddit-embed, gallery-carousel, .rfvb-media) {
+  display: none !important;
+}
+
+/* Old Reddit: thumbnail on the left plus the inline expando. Self posts keep
+   their body text in .expando, so theirs is left alone. */
+.thing.link:not([data-rfvb-revealed]) > .thumbnail,
+.thing.link:not(.self):not([data-rfvb-revealed]) .expando {
+  display: none !important;
+}
+
+.rfvb-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: var(--color-neutral-content-weak, #576f76);
+  width: 2rem;
+  height: 2rem;
+  min-width: 0;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  /* Feed cards (e.g. r/popular) lay a full-card link over the post and may set
+     pointer-events: none on header wrappers; lift the button above both. */
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/* An open ⋯ menu hangs over the posts (or comments) below it, whose eyes would
+   otherwise paint on top of it. Focus is inside the post while its menu is
+   open, so lift that post above its neighbours for that time. Profile pages
+   use their own comment element, and feeds wrap each item in an <article>.
+   Comment threads are left out: the lift traps Reddit's user hover card under
+   the comment text, and comment eyes aren't raised in the first place. */
+:is(article, shreddit-post, shreddit-ad-post, shreddit-profile-comment):focus-within {
+  position: relative;
+  z-index: 2;
+}
+
+/* The Mute List extension stacks the ⋯ over a mute button in .rmute-under.
+   The eye goes inside it but hangs off its left edge, level with the ⋯, so
+   the column keeps its width (widening it pushed the ⋯ off feed cards). */
+.rmute-under:has(> .rfvb-btn) {
+  position: relative;
+}
+
+.rmute-under > .rfvb-btn {
+  position: absolute;
+  top: 0;
+  right: 100%;
+}
+
+/* With Join present the eye sits before it; level it with the ⋯ above the
+   mute button instead of centering on the taller row. */
+[slot="credit-bar"]:has(.rmute-under) .rfvb-btn {
+  align-self: flex-start;
+}
+
+.rfvb-btn:hover {
+  color: var(--color-neutral-content-strong, #0f1a1c);
+  background-color: var(--color-secondary-background-hover, rgba(0, 0, 0, 0.06));
+}
+
+.rfvb-btn:focus-visible {
+  outline: 2px solid var(--color-focus, #0045ac);
+  outline-offset: 1px;
+}
+
+.rfvb-btn.content-visible {
+  color: #ff4500;
+}
+
+.rfvb-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: currentColor;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.rfvb-btn:active svg {
+  transform: scale(0.9);
+}
+
+/* The comment header row is shorter than a post's. */
+.rfvb-btn.rfvb-comment-btn {
+  width: 1.5rem;
+  height: 1.5rem;
+  /* Auto left margin pushes it to the header's right edge; negative block
+     margin keeps the header from growing taller. */
+  margin: -0.125rem 0.7rem -0.25rem auto;
+  align-self: flex-start;
+  /* No full-card link to rise above here; staying unpositioned lets an open
+     ⋯ menu from the comment above paint over it. */
+  position: static;
+  z-index: auto;
+}
+
+.rfvb-btn.rfvb-comment-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Old Reddit renders the button as a text link in the buttons row. */
+.rfvb-old-btn {
+  cursor: pointer;
+}
